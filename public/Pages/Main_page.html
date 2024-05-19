@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Web page of Ether game">
+    <meta name="keywords" content="Ether,game,The Ether">
+    <title>Ether game</title>
+    <link rel="stylesheet" href="Styles/MainStyle.css">
+    <script src="Scripts/CurrentPage.js"></script>
+</head>
+<body>
+<header>
+    <nav>
+        <a class="navigation" href="Main_page.html"> Home </a>
+        <a class="navigation" href="Roadmap_page.html"> Roadmap </a>
+        <a class="navigation" href="Posts_page.html"> Posts </a>
+        <a class="navigation" href="Buy_page.html"> Buy game </a>
+        <a class="navigation" id="acc_page" href="Account_page.html" style="display: none"> Account</a>
+    </nav>
+</header>
+
+<main>
+<h1>*Here is the info about the game*</h1>
+</main>
+
+<h2>Регистрация</h2>
+<form id="registrationForm">
+    <label for="email_reg" >Email:</label><br>
+    <input type="email" id="email_reg" name="email" required><br>
+    <label for="login_reg">Логин:</label><br>
+    <input type="text" id="login_reg" name="login" required><br>
+    <small>Логин должен быть уникальным</small><br>
+    <label for="password_reg">Пароль:</label><br>
+    <input type="password" id="password_reg" name="password" required><br><br>
+    <button type="submit">Зарегистрироваться</button>
+</form>
+
+<script>
+    document.getElementById('registrationForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById('email_reg').value;
+        const login = document.getElementById('login_reg').value;
+        const password = document.getElementById('password_reg').value;
+
+        try {
+            const response = await fetch('/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    login,
+                    password
+                })
+            });
+
+            if (response.ok) {
+                alert('Регистрация прошла успешно!');
+            } else {
+                if (response.status === 409) {
+                    alert('Пользователь с данным логином уже зарегистрирован');
+                } else {
+                    alert('Ошибка регистрации');
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка');
+        }
+    });
+</script>
+
+<h3>Авторизация</h3>
+<form id="loginForm">
+    <label for="login_auth">Логин:</label><br>
+    <input type="text" id="login_auth" name="login" required><br>
+    <label for="password_auth">Пароль:</label><br>
+    <input type="password" id="password_auth" name="password" required><br><br>
+    <button type="submit">Войти</button>
+</form>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const login = document.getElementById('login_auth').value;
+        const password = document.getElementById('password_auth').value;
+
+        try {
+            const response = await fetch('/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    login,
+                    password
+                })
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                sessionStorage.setItem('user', JSON.stringify(userData));
+                document.getElementById('acc_page').style.display = 'initial';
+                alert('Авторизация прошла успешно!');
+            } else {
+                alert('Ошибка авторизации');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка');
+        }
+    });
+
+    window.addEventListener('load', function() {
+        const userDataString = sessionStorage.getItem('user');
+        if (userDataString) {
+            document.getElementById('acc_page').style.display = 'initial';
+        }
+    });
+
+</script>
+
+<footer>
+    <p class="loading_time" id="loadingTime"></p>
+</footer>
+</body>
+</html>

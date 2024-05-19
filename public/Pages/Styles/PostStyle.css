@@ -1,0 +1,119 @@
+th,td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+    color: black;
+    background-image: url("../Assets/simple_bg.png");
+    font-family: 'ADLaM Display', fantasy;
+    text-align: left;
+}
+
+@media (min-width: 500px) {
+    table {
+        display: grid;
+        border-collapse: collapse;
+        min-width: 100%;
+        grid-template-columns: 100px 400px;
+    }
+
+    th,td{
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    td.user{
+        text-align: left;
+    }
+}
+@media (min-width: 1000px) {
+    table {
+        display: grid;
+        border-collapse: collapse;
+        min-width: 100%;
+        grid-template-columns: fit-content(100%) auto;
+    }
+
+    th,td{
+        padding: 15px;
+        font-size: 22px;
+    }
+
+    td.user{
+        text-align: center;
+    }
+}
+
+thead,
+tbody,
+tr {
+    display: contents;
+}
+
+th{
+    border: 2px solid black;
+}
+
+th:last-child {
+    border-left: 0;
+}
+
+td.cont{
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+td.user{
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.modal {
+    min-width: 100px;
+    min-height: 50px;
+    max-width: 700px;
+    text-decoration: none;
+    color: black;
+    background-image: url("../Assets/simple_bg.png");
+    font-family: 'ADLaM Display', fantasy;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid black;
+    z-index: 5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow: auto;
+}
+
+.modal p {
+    padding-top: 10px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.modal .btn {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.modal .btn-delete {
+    background-color: #dc3545;
+}
+
+.modal .btn-close {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    cursor: pointer;
+}

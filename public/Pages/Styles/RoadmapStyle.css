@@ -1,0 +1,119 @@
+* {
+    margin: 0;
+    padding: 0;
+
+}
+
+body {
+    background-color: lightgray;
+    background-image: url("../Assets/landscape_bg.png");
+    /* landing page */
+    background-size: cover;
+    overflow-x: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+h1.about_game{
+    margin: 8px;
+}
+
+p.groove {
+    border-style: groove;
+}
+
+nav{
+    margin: 10px;
+}
+
+a.navigation {
+    text-decoration: none;
+    text-align: center;
+    margin: 2px;
+    border-style: groove;
+    color: black;
+    background-image: url("../Assets/simple_bg.png");
+    font-family: 'ADLaM Display', fantasy;
+    font-size: 22px;
+}
+
+.navigation:hover{
+    border-color: yellow;
+}
+
+.current_page{
+    border: green 4px;
+}
+
+
+th,td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+    color: black;
+    background-image: url("../Assets/simple_bg.png");
+    font-family: 'ADLaM Display', fantasy;
+    text-align: left;
+}
+
+@media (min-width: 500px) {
+    table {
+        display: grid;
+        border-collapse: collapse;
+        min-width: 100%;
+        grid-template-columns: 100px 400px;
+    }
+
+    th,td{
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    td.date{
+        text-align: left;
+    }
+}
+@media (min-width: 1000px) {
+    table {
+        display: grid;
+        border-collapse: collapse;
+        min-width: 100%;
+        grid-template-columns: fit-content(100%) auto;
+    }
+
+    th,td{
+        padding: 15px;
+        font-size: 22px;
+    }
+
+    td.date{
+        text-align: center;
+    }
+}
+
+thead,
+tbody,
+tr {
+    display: contents;
+}
+
+th{
+    border: 2px solid black;
+}
+
+th:last-child {
+    border-left: 0;
+}
+
+td.cont{
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+td.date{
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+

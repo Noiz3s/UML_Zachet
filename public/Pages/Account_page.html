@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой аккаунт</title>
+    <link rel="stylesheet" href="Styles/MainStyle.css">
+    <script src="Scripts/CurrentPage.js"></script>
+    <style>
+        #logoutButton {
+            display: none;
+            margin: 10px;
+            padding: 10px;
+            background-color: #f00;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <nav>
+        <a class="navigation" href="Main_page.html"> Home </a>
+        <a class="navigation" href="Roadmap_page.html"> Roadmap </a>
+        <a class="navigation" href="Posts_page.html"> Posts </a>
+        <a class="navigation" href="Buy_page.html"> Buy game </a>
+        <a class="navigation" href="Account_page.html"> Account</a>
+    </nav>
+</header>
+<h1>Мой аккаунт</h1>
+<div id="userData"></div>
+
+<div>
+    <p id="adminMessage" style="display: none;">Вы - админ</p>
+    <button id="makeAdminButton" style="display: none;">Сделать админом</button>
+</div>
+
+<button id="changeEmailButton">Сменить почту</button>
+<div id="changeEmailForm" style="display: none;">
+    <input type="email" id="newEmail" placeholder="Новая почта" required>
+    <button id="confirmChangeEmail">Подтвердить</button>
+</div>
+<div id="buyHistory" >
+    <p> История ваших покупок:</p>
+    <ul id="buyHistoryList"> </ul>
+</div>
+
+<button id="logoutButton">Выйти из аккаунта</button>
+
+<script>
+    window.onload = function() {
+        const userDataString = sessionStorage.getItem('user');
+        const logoutButton = document.getElementById('logoutButton');
+        logoutButton.style.display = 'block';
+        if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            const userDataDiv = document.getElementById('userData');
+            userDataDiv.innerHTML = `<p>Логин: ${userData.login}</p><p>Email: ${userData.email}</p>`;
+            if (userData.role === 'admin') {
+                document.getElementById('adminMessage').style.display = 'block';
+            }else {
+                document.getElementById('makeAdminButton').style.display = 'block';
+            }
+            const buyHistoryList = document.getElementById('buyHistoryList');
+            buyHistoryList.innerHTML = '';
+            userData.buyHistory.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.textContent = item.toString();
+                buyHistoryList.appendChild(listItem);
+            });
+        } else {
+            window.location.href = 'Main_page.html';
+        }
+    };
+
+    document.getElementById('changeEmailButton').addEventListener('click', function() {
+        document.getElementById('changeEmailForm').style.display = 'block';
+    });
+
+    document.getElementById('confirmChangeEmail').addEventListener('click', async function() {
+        const newEmail = document.getElementById('newEmail').value;
+        const userDataString = sessionStorage.getItem('user');
+        if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            const userId = userData.id;
+
+            try {
+                const response = await fetch(`/users/updateUser/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email : newEmail
+                    })
+                });
+
+                if (response.ok) {
+                    const updatedUserData = { ...userData, email: newEmail };
+                    sessionStorage.setItem('user', JSON.stringify(updatedUserData));
+                    alert('Почта успешно изменена!');
+                    window.location.reload();
+                } else {
+                    alert('Ошибка при смене почты');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка');
+            }
+        } else {
+            alert('Пользователь не авторизован');
+            window.location.href = 'Main_page.html.html';
+        }
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', async function () {
+        const userDataString = sessionStorage.getItem('user');
+        const userData = JSON.parse(userDataString);
+        const userId = userData.id;
+        const response = await fetch(`/users/updateUserStatus/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isLogged: false })
+        });
+
+        if (response.ok) {
+            sessionStorage.removeItem('user');
+            alert('Вы вышли из аккаунта');
+            window.location.reload();
+        } else {
+            const responseData = await response.json();
+            alert('Ошибка при выходе: ' + responseData.message);
+        }
+    });
+
+    async function makeAdmin() {
+        const userDataString = sessionStorage.getItem('user');
+        if (userDataString) {
+            const userData = JSON.parse(userDataString);
+            const response = await fetch(`/users/updateUserRole/${userData.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ role: 'admin' }),
+            });
+
+            if (response.ok) {
+                alert('Теперь вы админ!');
+                userData.role = 'admin';
+                sessionStorage.setItem('user', JSON.stringify(userData));
+                window.location.reload();
+            } else {
+                alert('Ошибка при смене роли');
+            }
+        }
+    }
+
+    document.getElementById('makeAdminButton').addEventListener('click', makeAdmin);
+
+
+</script>
+
+</body>
+</html>

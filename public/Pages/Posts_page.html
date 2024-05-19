@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Web page of Ether game">
+    <meta name="keywords" content="Ether,game,The Ether">
+    <title>Posts</title>
+    <link rel="stylesheet" href="Styles/MainStyle.css">
+    <link rel="stylesheet" href="Styles/PostStyle.css">
+    <script src="Scripts/CurrentPage.js"></script>
+
+</head>
+<body>
+<header>
+    <nav>
+        <a class="navigation" href="Main_page.html"> Home </a>
+        <a class="navigation" href="Roadmap_page.html"> Roadmap </a>
+        <a class="navigation" href="Posts_page.html"> Posts </a>
+        <a class="navigation" href="Buy_page.html"> Buy game </a>
+        <a class="navigation" href="Account_page.html"> Account</a>
+    </nav>
+</header>
+
+<div class="Post">
+    <form id="NewPost">
+        <label for="PostName">Post Title:</label>
+        <input type="text" id="PostName" name="PostTitle"><br>
+        <label for="PostContent">Post Content:</label>
+        <textarea id="PostContent" name="PostContent"></textarea><br>
+        <input type="submit" value="Add new Post">
+    </form>
+
+    <div id="PostList">
+
+    </div>
+</div>
+
+<table id="Post_List">
+    <thead>
+    <tr>
+        <th>Post author</th>
+        <th>Theme</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<div id="postModal" class="modal" style="display: none">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="Author"></h2>
+        <p id="Title"></p>
+        <p id="Content"></p>
+        <button id="deletePostBtn" style="display: none">Delete Post</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch('/posts/getAllPosts');
+            if (!response.ok) {
+                throw new Error('Failed to fetch posts');
+            }
+
+            const posts = await response.json();
+
+            const postTableBody = document.querySelector('#Post_List tbody');
+
+            posts.forEach(async post => {
+                const response = await fetch(`/users/getUserById/${post.authorId}`);
+                const userData = await response.json();
+                const row = document.createElement('tr');
+                const authorCell = document.createElement('td');
+                const themeCell = document.createElement('td');
+
+                authorCell.textContent = userData.login;
+                themeCell.textContent = post.title;
+
+                row.appendChild(authorCell);
+                row.appendChild(themeCell);
+
+                row.addEventListener('click', () => {
+                    displayPostModal(post,userData.login);
+                    deletePostBtn.dataset.postId = post.id;
+                });
+
+                postTableBody.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error fetching posts:', error.message);
+            alert('Failed to fetch posts. Please try again later.');
+        }
+
+        const newPostForm = document.getElementById('NewPost');
+
+        newPostForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const postName = document.getElementById('PostName').value;
+            const postContent = document.getElementById('PostContent').value;
+            const userDataString = sessionStorage.getItem('user');
+            if (!userDataString) {
+                alert('Вам нужно авторизироваться чтобы добавить пост.');
+            }
+            else {
+                const userData = JSON.parse(userDataString);
+
+                const newPostData = {
+                    authorId: userData.id,
+                    title: postName,
+                    content: postContent
+                };
+
+                try {
+                    const response = await fetch('/posts/createPost', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newPostData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to add new post');
+                    }
+
+                    alert('Пост успешно добавлен.');
+                    location.reload();
+                } catch (error) {
+                    console.error('Error adding new post:', error.message);
+                    alert('Failed to add new post. Please try again later.');
+                }
+            }
+        });
+
+        const postModal = document.getElementById('postModal');
+        const closeModalBtn = document.querySelector('.close');
+
+        function displayPostModal(post,login) {
+            const postTitle = document.getElementById('Title');
+            const postAuthor = document.getElementById('Author');
+            const postContent = document.getElementById('Content');
+            const deletePostBtn = document.getElementById('deletePostBtn');
+
+            postTitle.textContent = `Title: ${post.title}`;
+            postAuthor.textContent = `Author: ${login}`;
+            postContent.textContent = `Content: ${post.content}`;
+
+            const userDataString = sessionStorage.getItem('user');
+            if (userDataString) {
+                const userData = JSON.parse(userDataString);
+                if (userData.id === post.author || userData.role === 'admin') {
+                    deletePostBtn.style.display = 'block';
+
+                    deletePostBtn.addEventListener('click', async () => {
+                        console.log("delete");
+                        try {
+                            const response = await fetch(`/posts/deletePost/${post.id}`, {
+                                method: 'DELETE',
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Failed to delete post');
+                            }
+                            else{
+                                alert('Пост успешно удален.');
+                                window.location.reload();
+                            }
+
+                        } catch (error) {
+                            console.error('Error deleting post:', error.message);
+                            alert('Failed to delete post. Please try again later.');
+                        }
+                    });
+                } else {
+                    deletePostBtn.style.display = 'none';
+                }
+            }
+
+            postModal.style.display = 'block';
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            postModal.style.display = 'none';
+        });
+
+        const postRows = document.querySelectorAll('#Post_List tbody tr');
+        postRows.forEach((row, index) => {
+            row.addEventListener('click', async () => {
+                const response = await fetch('/posts/getAllPosts');
+                const posts = await response.json();
+                const post = posts[index];
+                const resp = await fetch(`/users/getUserById/${post.authorId}`);
+                const userData = await resp.json();
+                displayPostModal(post,userData.login);
+            });
+        });
+    });
+
+</script>
+
+</body>
+</html>

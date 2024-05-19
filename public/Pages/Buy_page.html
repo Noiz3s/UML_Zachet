@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy the game</title>
+    <link rel="stylesheet" href="Styles/MainStyle.css">
+    <script src="Scripts/CurrentPage.js"></script>
+    <style>
+        .edition {
+            width: 200px;
+            height: 150px;
+            margin: 10px;
+            display: inline-block;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 150px;
+            cursor: pointer;
+        }
+
+        #loginModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        #loginModalContent {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        #priceModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        #priceModalContent {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <a class="navigation" href="Main_page.html"> Home </a>
+        <a class="navigation" href="Roadmap_page.html"> Roadmap </a>
+        <a class="navigation" href="Posts_page.html"> Posts </a>
+        <a class="navigation" href="Buy_page.html"> Buy game </a>
+        <a class="navigation" href="Account_page.html"> Account</a>
+    </nav>
+</header>
+<div id="loginModal">
+    <div id="loginModalContent">
+        <span id="closeLoginModal" style="float: right; cursor: pointer;">&times;</span>
+        <h2>Логин</h2>
+        <input type="text" id="loginUsername" placeholder="Логин" required>
+        <input type="password" id="loginPassword" placeholder="Пароль" required>
+        <button id="loginButton">Войти</button>
+    </div>
+</div>
+
+<div id="gameEditions">
+    <div class="edition" data-price="500 руб">Стандартное издание</div>
+    <div class="edition" data-price="1000 руб">Расширенное издание</div>
+    <div class="edition" data-price="1500 руб">Коллекционное издание</div>
+</div>
+
+<div id="priceModal">
+    <div id="priceModalContent">
+        <span id="closePriceModal" style="float: right; cursor: pointer;">&times;</span>
+        <h2>Цена</h2>
+        <p id="editionPrice"></p>
+        <button id="buyButton">Купить</button>
+    </div>
+</div>
+
+<script>
+    window.onload = function () {
+        const userDataString = sessionStorage.getItem('user');
+        if (!userDataString) {
+            document.getElementById('loginModal').style.display = 'block';
+        } else {
+            document.getElementById('gameEditions').style.display = 'block';
+        }
+    };
+
+    document.getElementById('loginButton').addEventListener('click', async function () {
+        const login = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    login,
+                    password
+                })
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                sessionStorage.setItem('user', JSON.stringify(userData));
+                document.getElementById("loginModal").style.display = 'none';
+                alert('Авторизация прошла успешно!');
+            } else {
+                alert('Ошибка авторизации');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка');
+        }
+    });
+
+    document.getElementById('closeLoginModal').addEventListener('click', function () {
+        document.getElementById('loginModal').style.display = 'none';
+    });
+
+    document.querySelectorAll('.edition').forEach(edition => {
+        edition.addEventListener('click', function() {
+            const editionName = this.innerText;
+            console.log(editionName);
+            document.getElementById('editionPrice').innerText = this.getAttribute('data-price');
+            document.getElementById('priceModal').style.display = 'block';
+
+            document.getElementById('buyButton').addEventListener('click', async function() {
+                const userDataString = sessionStorage.getItem('user');
+                if (userDataString) {
+                    const userData = JSON.parse(userDataString);
+                    const userId = userData.id;
+                    let buyHistory =  userData.buyHistory;
+                    console.log(buyHistory);
+                    buyHistory.push(editionName);
+
+                    try {
+                        const response = await fetch(`/users/buyGame/${userId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                buyHistory: buyHistory
+                            })
+                        });
+
+                        if (response.ok) {
+                            sessionStorage.setItem('user', JSON.stringify(userData));
+                            alert('Издание успешно куплено!');
+                            window.location.reload();
+                        } else {
+                            const responseData = await response.json();
+                            alert('Ошибка при покупке: ' + responseData.message);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        alert('Произошла ошибка');
+                    }
+                }
+            });
+        });
+    });
+
+    document.getElementById('closePriceModal').addEventListener('click', function () {
+        document.getElementById('priceModal').style.display = 'none';
+    });
+</script>
+
+</body>
+</html>
